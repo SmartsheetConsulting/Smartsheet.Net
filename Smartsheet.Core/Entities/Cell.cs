@@ -23,6 +23,8 @@ namespace Smartsheet.Core.Entities
 
         public string DisplayValue { get; set; }
 
+        public bool? Strict { get; set; }
+
         public Hyperlink Hyperlink { get; set; }
 
         public Column Column { get; set; }
