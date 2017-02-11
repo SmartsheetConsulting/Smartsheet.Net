@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using Smartsheet.Core.Entities;
 using Smartsheet.Extended.Configuration;
@@ -22,32 +21,56 @@ namespace Smartsheet.Extended.Excel
             });
         }
 
-        public static IEnumerable<Row> MapExcelRows(IList<IRow> excelRows, int headerRowNumber)
+        public static IEnumerable<Row> MapExcelRows(IList<IRow> excelRows, int headerRowIndex, bool excludeRowsWithNullCells = false, int numberOfBeginningRowsToSkip = 0, int numberOfEndRowsToSkip = 0)
         {
             var rows = new List<Row>();
 
-            var headerRow = excelRows[0];
+            var headerRow = excelRows[headerRowIndex];
 
             foreach (var excelRow in excelRows)
             {
-                if (!excelRow.Cells.Any(c => string.IsNullOrEmpty(c.ToString())))
+                if (excelRows.IndexOf(excelRow) > headerRowIndex)
                 {
-                    if (excelRow != excelRows[headerRowNumber])
+                    var row = new Row();
+
+                    foreach (var excelCell in excelRow.Cells)
                     {
-                        var row = new Row();
+                        var cell = new Cell();
 
-                        foreach (var excelCell in excelRow.Cells)
-                        {
-                            var cell = new Cell();
+                        cell.Column.Title = (String)CellExtension.GetCellValue(headerRow.Cells[excelCell.ColumnIndex]);
+                        cell.Value = CellExtension.GetCellValue(excelCell);
 
-                            cell.Column.Title = (String)CellExtension.GetCellValue(headerRow.Cells[excelCell.ColumnIndex]);
-                            cell.Value = CellExtension.GetCellValue(excelCell);
-
-                            row.Cells.Add(cell);
-                        }
-
-                        rows.Add(row);
+                        row.Cells.Add(cell);
                     }
+
+                    rows.Add(row);
+                }
+            }
+
+            if (excludeRowsWithNullCells)
+            {
+                foreach (var row in rows)
+                {
+                    if (!row.Cells.Any(c => string.IsNullOrEmpty(c.ToString())))
+                    {
+                        rows.Remove(row);
+                    }
+                }
+            }
+
+            if (numberOfBeginningRowsToSkip > 0)
+            {
+                for (int i = 0; i < numberOfBeginningRowsToSkip; i++)
+                {
+                    rows.Remove(rows[i]);
+                }
+            }
+
+            if (numberOfEndRowsToSkip > 0)
+            {
+                for (int i = 0; i < numberOfEndRowsToSkip; i++)
+                {
+                    rows.Remove(rows.LastOrDefault());
                 }
             }
 

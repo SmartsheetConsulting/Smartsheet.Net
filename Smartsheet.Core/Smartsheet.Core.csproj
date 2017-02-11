@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>d17ffc4c-f84e-4d27-a5ee-261089f78c43</ProjectGuid>
+    <ProjectGuid>{D17FFC4C-F84E-4D27-A5EE-261089F78C43}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Smartsheet.Core</RootNamespace>

@@ -18,7 +18,7 @@ namespace Smartsheet.Extended.Excel
                 case CellType.Error:
                     return cell.ErrorCellValue;
                 case CellType.Formula:
-                    return cell.CellFormula;
+                    return cell.NumericCellValue;
                 case CellType.Numeric:
                     if (DateUtil.IsCellDateFormatted(cell))
                     {

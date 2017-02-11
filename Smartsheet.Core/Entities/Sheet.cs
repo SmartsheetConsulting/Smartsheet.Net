@@ -108,7 +108,7 @@ namespace Smartsheet.Core.Entities
         //
         //  Client Methods
         #region SmartsheetHttpClient
-        public async Task<IEnumerable<Row>> CreateRows(IEnumerable<Row> rows, bool? toTop = null, bool? toBottom = null, long? parentId = null, long? siblingId = null)
+        public async Task<IEnumerable<Row>> CreateRows(IEnumerable<Row> rows, bool? toTop = null, bool? toBottom = null, bool? enforceStrict = null, long? parentId = null, long? siblingId = null)
         {
             if (rows.Count() > 1)
             {
@@ -116,6 +116,8 @@ namespace Smartsheet.Core.Entities
                 {
                     foreach (var cell in row.Cells)
                     {
+                        cell.Strict = enforceStrict;
+
                         cell.Build();
                     }
 
@@ -144,6 +146,33 @@ namespace Smartsheet.Core.Entities
             }
 
             var response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.PUT, string.Format("sheets/{0}/rows", this.Id), rows);
+
+            return response.Result;
+        }
+
+        public async Task<IEnumerable<Row>> RemoveRows(IEnumerable<Row> rows)
+        {
+            var rowList = rows.ToList();
+
+            var response = new ResultResponse<IEnumerable<Row>>();
+
+            while(rowList.Count > 0)
+            {
+                var rowIdList = string.Join(",", rows.Take(300).Select(r => Convert.ToString(r.Id)));
+
+                var url = string.Format("sheets/{0}/rows?ids={1}&ignoreRowsNotFound=true", this.Id, rowIdList);
+
+                response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.DELETE, string.Format("sheets/{0}/rows?ids={1}&ignoreRowsNotFound=true", this.Id, rowIdList), null);
+
+                if (response.Message.Equals("SUCCESS"))
+                {
+                    rowList.RemoveAll(r => rowIdList.Contains(Convert.ToString(r.Id)));
+                }
+                else
+                {
+                    return response.Result;
+                }
+            }
 
             return response.Result;
         }

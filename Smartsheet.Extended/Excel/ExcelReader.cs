@@ -1,5 +1,6 @@
 ﻿using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System.Collections.Generic;
 using System.IO;
 
@@ -16,7 +17,7 @@ namespace Smartsheet.Extended.Excel
         {
             FileStream fileStream = new FileStream(filePath, FileMode.Open);
 
-            HSSFWorkbook workbook = new HSSFWorkbook(fileStream);
+            XSSFWorkbook workbook = new XSSFWorkbook(fileStream);
 
             return workbook;
         }
@@ -25,7 +26,7 @@ namespace Smartsheet.Extended.Excel
         {
             var workbook = ParseExcelFileIntoWorkbook(filePath);
 
-            HSSFSheet sheet = (HSSFSheet)workbook.GetSheetAt(sheetIndex);
+            XSSFSheet sheet = (XSSFSheet)workbook.GetSheetAt(sheetIndex);
 
             return sheet;
         }
@@ -34,17 +35,17 @@ namespace Smartsheet.Extended.Excel
         {
             var sheet = ParseExcelFileIntoSheet(filePath, sheetIndex);
 
-            var rows = new List<HSSFRow>();
+            var rows = new List<XSSFRow>();
 
-            for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+            for (int rowIndex = 0; rowIndex < sheet.LastRowNum; rowIndex++)
             {
-                HSSFRow row = (HSSFRow)sheet.GetRow(rowIndex);
+                XSSFRow row = (XSSFRow)sheet.GetRow(rowIndex);
 
                 if (row != null)
                 {
                     for (int cellIndex = 0; cellIndex <= row.LastCellNum; cellIndex++)
                     {
-                        HSSFCell cell = (HSSFCell)row.GetCell(cellIndex);
+                        XSSFCell cell = (XSSFCell)row.GetCell(cellIndex);
 
                         if (cell != null)
                         {

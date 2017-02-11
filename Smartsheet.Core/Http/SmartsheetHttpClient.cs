@@ -336,6 +336,38 @@ namespace Smartsheet.Core.Http
 
             return response.Result;
         }
+
+        public async Task<MultiRowEmail> SendRows(long? sheetId, IEnumerable<long> rowIds, IEnumerable<Recipient> sendTo, IEnumerable<long> columnIds, string subject = null, string message = null, bool ccMe = false, bool includeDiscussions = true, bool includeAttachments = true)
+        {
+            if (sheetId == null)
+            {
+                throw new Exception("Sheet ID cannot be null");
+            }
+
+            if (rowIds.Count() == 0)
+            {
+                throw new Exception("Must specifiy 1 or more rows to update");
+            }
+
+            if (sendTo.Count() == 0)
+            {
+                throw new Exception("Must specifiy 1 or more recipients");
+            }
+
+            var multiRowEmail = new MultiRowEmail();
+            multiRowEmail.RowIds = rowIds.ToList();
+            multiRowEmail.ColumnIds = columnIds.ToList();
+            multiRowEmail.CcMe = ccMe;
+            multiRowEmail.IncludeAttachments = includeAttachments;
+            multiRowEmail.IncludeDiscussions = includeDiscussions;
+            multiRowEmail.Subject = subject;
+            multiRowEmail.Message = message;
+            multiRowEmail.SendTo = sendTo.ToList();
+
+            var result = await this.ExecuteRequest<ResultResponse<MultiRowEmail>, MultiRowEmail>(HttpVerb.POST, string.Format("sheets/{0}/rows/emails", sheetId), multiRowEmail);
+
+            return result.Result;
+        }
         #endregion
 
         //
@@ -423,11 +455,6 @@ namespace Smartsheet.Core.Http
             var result = await this.ExecuteRequest<ResultResponse<UpdateRequest>, UpdateRequest>(HttpVerb.POST, string.Format("sheets/{0}/updaterequests", sheetId), request);
 
             return result.Result;
-        }
-
-        public async Task<UpdateRequest> CreateUpdateRequests()
-        {
-            return null;
         }
         #endregion
     }
