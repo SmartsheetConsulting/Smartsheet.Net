@@ -108,24 +108,25 @@ namespace Smartsheet.Core.Entities
         //
         //  Client Methods
         #region SmartsheetHttpClient
-        public async Task<IEnumerable<Row>> CreateRows(IEnumerable<Row> rows, bool? toTop = null, bool? toBottom = null, bool? enforceStrict = null, long? parentId = null, long? siblingId = null)
+        public async Task<IEnumerable<Row>> CreateRows(IList<Row> rows, bool? toTop = null, bool? toBottom = null, bool? enforceStrict = null, long? parentId = null, long? siblingId = null)
         {
-            if (rows.Count() > 1)
+            for (int i = 0; i < rows.Count; i++)
             {
-                foreach (var row in rows)
+                foreach (var cell in rows[i].Cells)
                 {
-                    foreach (var cell in row.Cells)
-                    {
-                        cell.Strict = enforceStrict;
+                    cell.Strict = enforceStrict;
 
-                        cell.Build();
-                    }
-
-                    row.ToTop = toTop;
-                    row.ToBottom = toBottom;
-                    row.ParentId = parentId;
-                    row.SiblingId = siblingId;
+                    cell.Build();
                 }
+
+                rows[i].Id = null;
+                rows[i].CreatedAt = null;
+                rows[i].ModifiedAt = null;
+                rows[i].RowNumber = null;
+                rows[i].ToTop = toTop;
+                rows[i].ToBottom = toBottom;
+                rows[i].ParentId = parentId;
+                rows[i].SiblingId = siblingId;
             }
 
             var response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.POST, string.Format("sheets/{0}/rows", this.Id), rows);
@@ -133,15 +134,10 @@ namespace Smartsheet.Core.Entities
             return response.Result;
         }
 
-        public async Task<IEnumerable<Row>> UpdateRows(IEnumerable<Row> rows)
+        public async Task<IEnumerable<Row>> UpdateRows(IList<Row> rows)
         {
-            foreach (var row in rows)
+            foreach (var row in rows.ToList())
             {
-                foreach (var cell in row.Cells)
-                {
-                    cell.Build();
-                }
-
                 row.Build(false, row.Cells);
             }
 
@@ -150,7 +146,7 @@ namespace Smartsheet.Core.Entities
             return response.Result;
         }
 
-        public async Task<IEnumerable<Row>> RemoveRows(IEnumerable<Row> rows)
+        public async Task<IEnumerable<Row>> RemoveRows(IList<Row> rows)
         {
             var rowList = rows.ToList();
 

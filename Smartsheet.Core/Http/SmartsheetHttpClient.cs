@@ -261,7 +261,7 @@ namespace Smartsheet.Core.Http
         //
         //  Sheets
         #region Sheets
-        public async Task<Sheet> CreateSheet(string sheetName, IEnumerable<Column> columns, string folderId = null, string workspaceId = null)
+        public async Task<Sheet> CreateSheet(string sheetName, IEnumerable<Column> columns, long? folderId = null, long? workspaceId = null)
         {
             if (string.IsNullOrWhiteSpace(sheetName))
             {
@@ -270,7 +270,55 @@ namespace Smartsheet.Core.Http
 
             var sheet = new Sheet(sheetName, columns.ToList());
 
-            var response = await this.ExecuteRequest<ResultResponse<Sheet> ,Sheet>(HttpVerb.POST, string.Format("sheets"), sheet);
+            var response = new ResultResponse<Sheet>();
+               
+            if (folderId == null && workspaceId == null)
+            {
+                response = await this.ExecuteRequest<ResultResponse<Sheet>, Sheet>(HttpVerb.POST, string.Format("sheets"), sheet);
+            }
+            else if (folderId != null && workspaceId == null) // Folders
+            {
+                response = await this.ExecuteRequest<ResultResponse<Sheet>, Sheet>(HttpVerb.POST, string.Format("folders/{0}/sheets", folderId), sheet);
+            }
+            else if (folderId == null && workspaceId != null) // Folders
+            {
+                response = await this.ExecuteRequest<ResultResponse<Sheet>, Sheet>(HttpVerb.POST, string.Format("workspaces/{0}/sheets", workspaceId), sheet);
+            }
+
+            response.Result._Client = this;
+
+            return response.Result;
+        }
+
+        public async Task<Sheet> CreateSheetFromTemplate(string sheetName, long? templateId, long? folderId = null, long? workspaceId = null)
+        {
+            if (string.IsNullOrWhiteSpace(sheetName))
+            {
+                throw new Exception("Sheet Name cannot be null or blank");
+            }
+
+            if (templateId == null)
+            {
+                throw new Exception("Template ID cannot be null or blank");
+            }
+
+            var sheet = new Sheet(sheetName, null);
+            sheet.FromId = templateId;
+
+            var response = new ResultResponse<Sheet>();
+
+            if (folderId == null && workspaceId == null)
+            {
+                response = await this.ExecuteRequest<ResultResponse<Sheet>, Sheet>(HttpVerb.POST, string.Format("sheets"), sheet);
+            }
+            else if (folderId != null && workspaceId == null) // Folders
+            {
+                response = await this.ExecuteRequest<ResultResponse<Sheet>, Sheet>(HttpVerb.POST, string.Format("folders/{0}/sheets?include=data", folderId), sheet);
+            }
+            else if (folderId == null && workspaceId != null) // Folders
+            {
+                response = await this.ExecuteRequest<ResultResponse<Sheet>, Sheet>(HttpVerb.POST, string.Format("workspaces/{0}/sheets", workspaceId), sheet);
+            }
 
             response.Result._Client = this;
 
@@ -373,6 +421,30 @@ namespace Smartsheet.Core.Http
         //
         //  Folders
         #region Folders
+        public async Task<Folder> CreateFolder(string folderName,  string workspaceId = null)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                throw new Exception("Folder Name cannot be null or blank");
+            }
+
+            var folder = new Folder(folderName);
+
+            var response = new ResultResponse<Folder>();
+
+            if (workspaceId == null)
+            {
+                response = await this.ExecuteRequest<ResultResponse<Folder>, Folder>(HttpVerb.POST, string.Format("home/folders"), folder);
+            }
+            else if (workspaceId != null) // Folders
+            {
+                response = await this.ExecuteRequest<ResultResponse<Folder>, Folder>(HttpVerb.POST, string.Format("workspaces/{0}/sheets", workspaceId), folder);
+            }
+
+            response.Result._Client = this;
+
+            return response.Result;
+        }
 
         public async Task<IEnumerable<ISmartsheetObject>> GetFoldersForWorkspace(long? workspaceId)
         {
@@ -386,6 +458,17 @@ namespace Smartsheet.Core.Http
             return response.Folders;
         }
 
+        public async Task<Folder> GetFolderById(long? folderId)
+        {
+            if (folderId == null)
+            {
+                throw new Exception("Folder ID cannot be null");
+            }
+
+            var response = await this.ExecuteRequest<Folder, Folder>(HttpVerb.GET, string.Format("folders/{0}", folderId), null);
+
+            return response;
+        }
         #endregion
 
         //
@@ -453,6 +536,38 @@ namespace Smartsheet.Core.Http
             };
 
             var result = await this.ExecuteRequest<ResultResponse<UpdateRequest>, UpdateRequest>(HttpVerb.POST, string.Format("sheets/{0}/updaterequests", sheetId), request);
+
+            return result.Result;
+        }
+
+        public async Task<UpdateRequest> CreateUpdateRequest(long? sheetId, UpdateRequest updateRequest)
+        {
+            if (sheetId == null)
+            {
+                throw new Exception("Sheet ID cannot be null");
+            }
+
+            if (updateRequest.RowIds.Count == 0)
+            {
+                throw new Exception("Must specifiy 1 or more rows to update");
+            }
+
+            if (updateRequest.SendTo.Count == 0)
+            {
+                throw new Exception("Must specifiy 1 or more recipients");
+            }
+
+            if (updateRequest.IncludeAttachments == null)
+            {
+                updateRequest.IncludeAttachments = false;
+            }
+
+            if (updateRequest.IncludeDiscussions == null)
+            {
+                updateRequest.IncludeDiscussions = false;
+            }
+
+            var result = await this.ExecuteRequest<ResultResponse<UpdateRequest>, UpdateRequest>(HttpVerb.POST, string.Format("sheets/{0}/updaterequests", sheetId), updateRequest);
 
             return result.Result;
         }

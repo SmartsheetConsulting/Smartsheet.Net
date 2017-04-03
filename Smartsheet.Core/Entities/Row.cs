@@ -22,6 +22,15 @@ namespace Smartsheet.Core.Entities
             this.Discussions = null;
             this.Attatchments = null;
 
+            //var buildCells = new List<Cell>();
+
+            //foreach (var cell in cells)
+            //{
+            //    buildCells.Add(cell.Build());
+            //}
+
+            //this.Cells = buildCells;
+
             return this;
         }
 
@@ -97,6 +106,20 @@ namespace Smartsheet.Core.Entities
         {
             var cell = this.Cells.Where(c => c.Column.Title.Trim() == columnTitle).FirstOrDefault();
             cell.Value = value;
+        }
+
+        public void AddCell(long columnId, dynamic value)
+        {
+            this.Cells.Add(new Cell()
+            {
+                ColumnId = columnId,
+                Value = value
+            });
+        }
+
+        public void AddCell(Cell cell)
+        {
+            this.Cells.Add(cell);
         }
         #endregion
     }

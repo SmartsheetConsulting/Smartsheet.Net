@@ -3,7 +3,7 @@ using ProfessionalServices.Core.Interfaces;
 
 namespace Smartsheet.Core.Entities
 {
-    public class Folder : ISmartsheetObject
+    public class Folder : SmartsheetObject
     {
         public Folder()
         {
@@ -13,9 +13,27 @@ namespace Smartsheet.Core.Entities
             this.Templates = new List<Template>();
         }
 
-        public long Id { get; set; }
+        public Folder(string name)
+        {
+            this.Name = name;
+        }
+
+        public Folder Build()
+        {
+            this.Id = null;
+            this.Favorite = null;
+            this.Permalink = "";
+            this.Sheets = null;
+            this.Folders = null;
+            this.Reports = null;
+            this.Templates = null;
+
+            return this;
+        }
+
+        public long? Id { get; set; }
         public string Name { get; set; }
-        public bool Favorite { get; set; }
+        public bool? Favorite { get; set; }
         public string Permalink { get; set; }
 
         public ICollection<Sheet> Sheets { get; set; }
