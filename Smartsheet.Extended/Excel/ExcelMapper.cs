@@ -33,7 +33,7 @@ namespace Smartsheet.Extended.Excel
                 {
                     var row = new Row();
 
-                    foreach (var excelCell in excelRow.Cells)
+                    foreach (var excelCell in excelRow.Cells.Where(c => c.ColumnIndex < excelRows[headerRowIndex].Cells.Count))
                     {
                         var cell = new Cell();
 
@@ -49,11 +49,11 @@ namespace Smartsheet.Extended.Excel
 
             if (excludeRowsWithNullCells)
             {
-                foreach (var row in rows)
+                for (int i = 0; i < rows.Count; i++)
                 {
-                    if (!row.Cells.Any(c => string.IsNullOrEmpty(c.ToString())))
+                    if (!rows[i].Cells.Any(c => string.IsNullOrEmpty(c.ToString())))
                     {
-                        rows.Remove(row);
+                        rows.Remove(rows[i]);
                     }
                 }
             }

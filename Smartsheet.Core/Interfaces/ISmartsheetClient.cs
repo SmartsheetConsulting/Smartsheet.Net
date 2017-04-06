@@ -9,6 +9,6 @@ namespace Smartsheet.Core.Interfaces
 {
     public interface ISmartsheetClient
     {
-        Task<TResult> ExecuteRequest<TResult, T>(HttpVerb verb, string url, T data);
+        Task<TResult> ExecuteRequest<TResult, T>(HttpVerb verb, string url, T data, IList<Tuple<string, string>> headers = null, bool deserializeAsJson = true);
     }
 }

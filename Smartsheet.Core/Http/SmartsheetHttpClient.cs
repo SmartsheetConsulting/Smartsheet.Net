@@ -19,6 +19,7 @@ namespace Smartsheet.Core.Http
 {
     public class SmartsheetHttpClient : ISmartsheetClient
     {
+        private static string _BaseAddress = "https://api.smartsheet.com/2.0/";
         private HttpClient _HttpClient = new HttpClient();
         private string _AccessToken = null;
         private string _ChangeAgent = null;
@@ -31,7 +32,7 @@ namespace Smartsheet.Core.Http
         {
             this._AccessToken = token;
             this._ChangeAgent = changeAgent;
-            this._HttpClient.BaseAddress = new Uri("https://api.smartsheet.com/2.0/");
+            this._HttpClient.BaseAddress = new Uri(_BaseAddress);
             this._HttpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             this._HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this._AccessToken);
         }
@@ -39,9 +40,9 @@ namespace Smartsheet.Core.Http
         //
         //  Request Logic
         #region SmartsheetHttpClient Request Logic
-        public async Task<TResult> ExecuteRequest<TResult, T>(HttpVerb verb, string url, T data)
+        public async Task<TResult> ExecuteRequest<TResult, T>(HttpVerb verb, string url, T data, IList<Tuple<string, string>> headers = null, bool deserializeAsJson = true)
         {
-            this.ValidateRequestInjectedResult(typeof(TResult));
+            //this.ValidateRequestInjectedResult(typeof(TResult));
 
             //this.ValidateRequestInjectedType(typeof(T));
 
@@ -68,22 +69,39 @@ namespace Smartsheet.Core.Http
 
                     var serializedData = JsonConvert.SerializeObject(data, Formatting.None, serializerSettings);
 
+                    var request = new HttpRequestMessage()
+                    {
+                        RequestUri = new Uri(_BaseAddress + url)
+                    };
+
+                    if (headers != null)
+                    {
+                        foreach (var header in headers)
+                        {
+                            request.Headers.Add(header.Item1, header.Item2);
+                        }
+                    }
+
                     switch (verb)
                     {
                         default:
                         case HttpVerb.GET:
-                            response = await this._HttpClient.GetAsync(url);
+                            request.Method = HttpMethod.Get;
                             break;
                         case HttpVerb.PUT:
-                            response = await this._HttpClient.PutAsync(url, new StringContent(serializedData, System.Text.Encoding.UTF8, "application/json"));
+                            request.Method = HttpMethod.Put;
+                            request.Content = new StringContent(serializedData, System.Text.Encoding.UTF8, "application/json");
                             break;
                         case HttpVerb.POST:
-                            response = await this._HttpClient.PostAsync(url, new StringContent(serializedData, System.Text.Encoding.UTF8, "application/json"));
+                            request.Method = HttpMethod.Post;
+                            request.Content = new StringContent(serializedData, System.Text.Encoding.UTF8, "application/json");
                             break;
                         case HttpVerb.DELETE:
-                            response = await this._HttpClient.DeleteAsync(url);
+                            request.Method = HttpMethod.Delete;
                             break;
                     }
+
+                    response = await this._HttpClient.SendAsync(request);
 
                     var statusCode = response.StatusCode;
 
@@ -93,11 +111,16 @@ namespace Smartsheet.Core.Http
                         {
                             var responseBody = await response.Content.ReadAsStringAsync();
 
-                            var jsonReponseBody = JsonConvert.DeserializeObject(responseBody).ToString();
+                            if (deserializeAsJson)
+                            {
+                                var jsonReponseBody = JsonConvert.DeserializeObject(responseBody).ToString();
 
-                            var resultResponse = JsonConvert.DeserializeObject<TResult>(jsonReponseBody);
-
-                            return resultResponse;
+                                return JsonConvert.DeserializeObject<TResult>(jsonReponseBody);
+                            }
+                            else
+                            {
+                                return (TResult)Convert.ChangeType(responseBody, typeof(TResult)); ;
+                            }
                         }
                         catch (Exception e)
                         {
@@ -474,6 +497,37 @@ namespace Smartsheet.Core.Http
         //
         //  Reports
         #region Reports
+        public async Task<Report> GetReportById(long? reportId, int? pageSize = 500, int? page = 1)
+        {
+            if (reportId == null)
+            {
+                throw new Exception("Report ID cannot be null");
+            }
+
+            var response = await this.ExecuteRequest<Report, Report>(HttpVerb.GET, string.Format("reports/{0}?pageSize={1}&page={2}", reportId, pageSize, page), null);
+
+            response._Client = this;
+
+            return response;
+        }
+
+        public async Task<string> GetReportByIdAsCsv(long? reportId)
+        {
+            if (reportId == null)
+            {
+                throw new Exception("Report ID cannot be null");
+            }
+
+            var headers = new List<Tuple<string, string>>()
+            {
+                new Tuple<string, string>("Accept", "text/csv")
+            };
+
+            var response = await this.ExecuteRequest<string, string>(HttpVerb.GET, string.Format("reports/{0}", reportId), null, headers, false);
+
+            return response;
+        }
+
         public async Task<IEnumerable<ISmartsheetObject>> GetReportsForWorkspace(long? workspaceId)
         {
             if (workspaceId == null)
