@@ -442,6 +442,31 @@ namespace Smartsheet.Core.Http
         #endregion
 
         //
+        //  Columns
+        public async Task<IEnumerable<Column>> CreateColumns(long? sheetId, IEnumerable<Column> columns, bool? toTop = null, bool? toBottom = null, long? parentId = null, long? siblingId = null)
+        {
+            if (sheetId == null)
+            {
+                throw new Exception("Sheet ID cannot be null");
+            }
+
+            if (columns.Count() > 1)
+            {
+                foreach (var column in columns)
+                {
+                    if (column.Title == null || column.Type == null)
+                    {
+                        throw new Exception("Column is missing required attributes Title, or Type");
+                    }
+                }
+            }
+
+            var response = await this.ExecuteRequest<ResultResponse<IEnumerable<Column>>, IEnumerable<Column>>(HttpVerb.POST, string.Format("sheets/{0}/columns", sheetId), columns);
+
+            return response.Result;
+        }
+
+        //
         //  Folders
         #region Folders
         public async Task<Folder> CreateFolder(string folderName,  string workspaceId = null)

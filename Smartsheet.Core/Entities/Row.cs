@@ -39,12 +39,20 @@ namespace Smartsheet.Core.Entities
             this.Columns = null;
             this.Discussions = null;
             this.Attatchments = null;
+            this.LockedForUser = null;
 
             var buildCells = new List<Cell>();
 
-            foreach (var cell in this.Cells)
+            for (var i = 0; i < this.Cells.Count; i++)
             {
-                buildCells.Add(cell.Build());
+                if (this.Cells.ToArray()[i].Value == null && this.Cells.ToArray()[i].Formula == null)
+                {
+                    this.Cells.Remove(this.Cells.ToArray()[i]);
+                }
+                else
+                {
+                    buildCells.Add(this.Cells.ToArray()[i].Build());
+                }
             }
 
             this.Cells = buildCells;

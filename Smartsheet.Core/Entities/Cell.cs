@@ -14,12 +14,19 @@ namespace Smartsheet.Core.Entities
         {
             this.Column = null;
 
+            if (this.Formula != null)
+            {
+                this.Value = null;
+            }
+
             return this;
         }
 
         public long? ColumnId { get; set; }
 
         public dynamic Value { get; set; }
+
+        public string Formula { get; set; }
 
         public string DisplayValue { get; set; }
 
