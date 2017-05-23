@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Smartsheet.Core.Responses
 {
-    public class IndexResultResponse : ISmartsheetResult
+    public class IndexResultResponse<T> : ISmartsheetResult
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public int TotalPages { get; set; }
         public int TotalCount { get; set; }
-        public IEnumerable<ISmartsheetObject> Data { get; set; }
+        public IEnumerable<T> Data { get; set; }
     }
 }

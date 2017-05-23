@@ -250,6 +250,19 @@ namespace Smartsheet.Core.Http
         #endregion
 
         //
+        //  Groups
+
+        #region Groups
+
+        public async Task<IEnumerable<Group>> GetGroups()
+        {
+            var response = await this.ExecuteRequest<IndexResultResponse<Group>, Group>(HttpVerb.GET, "groups", null);
+
+            return response.Data; 
+        }
+
+        #endregion
+
         //  Workspaces
         #region Workspaces
 
