@@ -398,7 +398,7 @@ namespace Smartsheet.Core.Http
 
                     foreach(var cell in row.Cells)
                     {
-                        cell.Build();
+                        cell.Build(false);
                     }
                 }
             }
@@ -406,6 +406,27 @@ namespace Smartsheet.Core.Http
             var response = await this.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.POST, string.Format("sheets/{0}/rows", sheetId), rows);
 
             return response.Result;
+        }
+
+        public async Task<CopyOrMoveRowResult> CopyRowsToSheet(long? sourceSheetId, long? destinationSheetId, IList<long?> rowIds)
+        {
+            if (sourceSheetId == null || destinationSheetId == null)
+            {
+                throw new Exception("Source or Destination Sheet ID cannot be null");
+            }
+
+            var copyOrMoveRowDirective = new CopyOrMoveRowDirective()
+            {
+                To = new CopyOrMoveRowDestination()
+                {
+                    SheetId = destinationSheetId
+                },
+                RowIds = rowIds
+            };
+
+            var response = await this.ExecuteRequest<CopyOrMoveRowResult, CopyOrMoveRowDirective>(HttpVerb.POST, string.Format("sheets/{0}/rows/copy?include=all", sourceSheetId), copyOrMoveRowDirective);
+
+            return response;
         }
 
         public async Task<MultiRowEmail> SendRows(long? sheetId, IEnumerable<long> rowIds, IEnumerable<Recipient> sendTo, IEnumerable<long> columnIds, string subject = null, string message = null, bool ccMe = false, bool includeDiscussions = true, bool includeAttachments = true)
