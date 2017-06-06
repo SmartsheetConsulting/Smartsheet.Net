@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.2-beta1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>\\Mac\Home\Documents\Visual Studio 2017\Projects\TestGroupsSolution\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -57,6 +57,8 @@
     <Compile Include="Entities\Email.cs" />
     <Compile Include="Entities\Filter.cs" />
     <Compile Include="Entities\Folder.cs" />
+    <Compile Include="Entities\Group.cs" />
+    <Compile Include="Entities\GroupMember.cs" />
     <Compile Include="Entities\Hyperlink.cs" />
     <Compile Include="Entities\MultiRowEmail.cs" />
     <Compile Include="Entities\Recipient.cs" />

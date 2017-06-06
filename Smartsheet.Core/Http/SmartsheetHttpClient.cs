@@ -250,6 +250,76 @@ namespace Smartsheet.Core.Http
         #endregion
 
         //
+        //  Groups
+
+        #region Groups
+       
+        public async Task<Group> GetGroup(long groupId)
+        {
+            var response = await this.ExecuteRequest<Group, Group>(HttpVerb.GET, string.Format("groups/{0}", groupId), null);
+
+            return response;
+        }
+
+        public async Task<IEnumerable<Group>> GetGroups(bool includeGroupMembers = false)
+        {
+            var response = await this.ExecuteRequest<IndexResultResponse<Group>, Group>(HttpVerb.GET, "groups", null);
+
+            IEnumerable<Group> groups = response.Data;
+
+            if (includeGroupMembers)
+            {
+                foreach(Group g in groups)
+                {
+                    Group group = GetGroup(g.Id.Value).Result;
+                    if(group != null)
+                    {
+                        g.Members = group.Members;
+                    }
+                }
+            }
+
+            return groups;
+        }
+
+
+        public async Task<Group> CreateGroup(string groupName)
+        {
+            if (string.IsNullOrWhiteSpace(groupName))
+            {
+                throw new Exception("Group Name cannot be null or blank");
+            }
+
+            var group = new Group(groupName);
+
+            var response = await this.ExecuteRequest<ResultResponse<Group>, Group>(HttpVerb.POST, "groups", group);
+
+            return response.Result;
+        }
+
+        public async Task<bool>DeleteGroup(long groupId)
+        {
+            var response = await this.ExecuteRequest<ResultResponse<Group>, long>(HttpVerb.DELETE, string.Format("groups/{0}", groupId), groupId);
+
+            return true;
+        }
+
+        public async Task<bool> DeleteGroupMember(long groupId, long userId)
+        {
+            var response = await this.ExecuteRequest<ResultResponse<GroupMember>, string>(HttpVerb.DELETE, string.Format("groups/{0}/members/{1}", groupId, userId), string.Format("g{0}:u{1}", groupId, userId));
+
+            return true;
+        }
+
+        public async Task<IEnumerable<GroupMember>> CreateGroupMembers(long groupId, IEnumerable<GroupMember> groupMembers)
+        {
+            var response = await this.ExecuteRequest<ResultResponse<IEnumerable<GroupMember>>, IEnumerable<GroupMember>>(HttpVerb.POST, string.Format("groups/{0}/members", groupId), groupMembers);
+
+            return response.Result;
+        }
+
+        #endregion
+
         //  Workspaces
         #region Workspaces
 
