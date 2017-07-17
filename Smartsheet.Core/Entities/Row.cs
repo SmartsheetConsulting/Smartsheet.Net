@@ -34,24 +34,28 @@ namespace Smartsheet.Core.Entities
             return this;
         }
 
-        public Row Build(bool toTop)
+        public Row Build(bool toTop, bool strict = false, bool preserveId = false)
         {
+            if (!preserveId)
+            {
+                this.Id = null;
+            }
+
+            this.RowNumber = null;
+            this.CreatedAt = null;
+            this.ModifiedAt = null;
+            this.LockedForUser = null;
             this.Columns = null;
             this.Discussions = null;
             this.Attatchments = null;
-            this.LockedForUser = null;
 
             var buildCells = new List<Cell>();
 
             for (var i = 0; i < this.Cells.Count; i++)
             {
-                if (this.Cells.ToArray()[i].Value == null && this.Cells.ToArray()[i].Formula == null)
+                if (this.Cells.ElementAt(i).Value != null)
                 {
-                    this.Cells.Remove(this.Cells.ToArray()[i]);
-                }
-                else
-                {
-                    buildCells.Add(this.Cells.ToArray()[i].Build());
+                    buildCells.Add(this.Cells.ElementAt(i).Build(strict));
                 }
             }
 
