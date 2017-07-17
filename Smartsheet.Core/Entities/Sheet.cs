@@ -20,13 +20,13 @@ namespace Smartsheet.Core.Entities
             this.Name = sheetName;
         }
 
-        public Sheet(string sheetName, ICollection<Column> columns)
+        public Sheet(string sheetName, IList<Column> columns)
         {
             this.Name = sheetName;
             this.Columns = columns;
         }
 
-        public Sheet(SmartsheetHttpClient client, string sheetName = "", ICollection<Column> columns = null) : base(client)
+        public Sheet(SmartsheetHttpClient client, string sheetName = "", IList<Column> columns = null) : base(client)
         {
             this.EffectiveAttachmentOptions = new List<string>();
             this.Columns = new List<Column>();
@@ -59,15 +59,15 @@ namespace Smartsheet.Core.Entities
         public UserSettings UserSettings { get; set; }
         public Workspace Workspace { get; set; }
 
-        public ICollection<string> EffectiveAttachmentOptions { get; set; }
-        public ICollection<Column> Columns { get; set; }
-        public ICollection<Row> Rows { get { return this.MapCellsToColumns(); } set { this.UnformattedRows = value; } }
-        private ICollection<Row> UnformattedRows { get; set; }
+        public IList<string> EffectiveAttachmentOptions { get; set; }
+        public IList<Column> Columns { get; set; }
+        public IList<Row> Rows { get { return this.MapCellsToColumns(); } set { this.UnformattedRows = value; } }
+        private IList<Row> UnformattedRows { get; set; }
 
         //
         //  Extension Methods
         #region Extensions
-        private ICollection<Row> MapCellsToColumns()
+        private IList<Row> MapCellsToColumns()
         {
             if (this.UnformattedRows != null)
             {
@@ -78,15 +78,49 @@ namespace Smartsheet.Core.Entities
 
                     for (var i = 0; i < parsedColumns.Count; i++)
                     {
-                        var cell = parsedCells[i];
+                        var cell = parsedCells.Find(pc => pc.ColumnId == parsedColumns[i].Id);
 
-                        cell.ColumnId = parsedColumns[i].Id;
-                        cell.Column = parsedColumns[i];
+                        if (cell != null)
+                        {
+                            cell.ColumnId = parsedColumns[i].Id;
+                            cell.Column = parsedColumns[i];
+                        }
                     }
                 }
             }
 
             return this.UnformattedRows;
+        }
+
+        public Sheet RemoveSystemColumnsAndCells()
+        {
+            this.MapCellsToColumns();
+
+            var systemColumns = this.Columns
+                .Where(c => c.SystemColumnType != null)
+                .Select(c => c.Id)
+                .ToList();
+
+            for(var i = 0; i < this.Columns.Count; i++)
+            {
+                if (systemColumns.Contains(this.Columns[i].Id))
+                {
+                    this.Columns.Remove(this.Columns[i]);
+                }
+            }
+
+            for(var x = 0; x < this.Rows.Count; x++)
+            {
+                for(var y = 0; y < this.Rows[x].Cells.Count; y++)
+                {
+                    if (systemColumns.Contains(this.Rows[x].Cells[y].ColumnId))
+                    {
+                        this.Rows[x].Cells.Remove(this.Rows[x].Cells[y]);
+                    }
+                }
+            }
+
+            return this;
         }
 
         public Column GetColumnById(long columnId)
@@ -112,6 +146,8 @@ namespace Smartsheet.Core.Entities
         {
             for (int i = 0; i < rows.Count; i++)
             {
+                rows[i].Build();
+
                 foreach (var cell in rows[i].Cells)
                 {
                     cell.Build(enforceStrict);
@@ -165,11 +201,11 @@ namespace Smartsheet.Core.Entities
             return response.Result;
         }
 
-        public async Task<IEnumerable<Row>> RemoveRows(IList<Row> rows)
+        public async Task<IEnumerable<long>> RemoveRows(IList<Row> rows)
         {
             var rowList = rows.ToList();
 
-            var response = new ResultResponse<IEnumerable<Row>>();
+            var response = new ResultResponse<IEnumerable<long>>();
 
             while(rowList.Count > 0)
             {
@@ -177,15 +213,11 @@ namespace Smartsheet.Core.Entities
 
                 var url = string.Format("sheets/{0}/rows?ids={1}&ignoreRowsNotFound=true", this.Id, rowIdList);
 
-                response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.DELETE, string.Format("sheets/{0}/rows?ids={1}&ignoreRowsNotFound=true", this.Id, rowIdList), null);
+                response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<long>>, IEnumerable<Row>>(HttpVerb.DELETE, string.Format("sheets/{0}/rows?ids={1}&ignoreRowsNotFound=true", this.Id, rowIdList), null);
 
                 if (response.Message.Equals("SUCCESS"))
                 {
                     rowList.RemoveAll(r => rowIdList.Contains(Convert.ToString(r.Id)));
-                }
-                else
-                {
-                    return response.Result;
                 }
             }
 

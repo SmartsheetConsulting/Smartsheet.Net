@@ -10,9 +10,10 @@ namespace Smartsheet.Core.Entities
             this.Column = new Column();
         }
 
-        public Cell Build()
+        public Cell Build(bool? strict = false)
         {
             this.Column = null;
+            this.Strict = Strict;
 
             return this;
         }

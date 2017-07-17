@@ -15,21 +15,17 @@ namespace Smartsheet.Core.Entities
 
         public Row Build(
             bool toTop,
-            ICollection<Cell> cells = null)
+            IList<Cell> cells = null)
         {
-            this.Cells = cells;
+            //this.Id = null;
+            this.RowNumber = null;
+            this.CreatedAt = null;
+            this.ModifiedAt = null;
+            this.LockedForUser = null;
             this.Columns = null;
             this.Discussions = null;
             this.Attatchments = null;
-
-            //var buildCells = new List<Cell>();
-
-            //foreach (var cell in cells)
-            //{
-            //    buildCells.Add(cell.Build());
-            //}
-
-            //this.Cells = buildCells;
+            this.Cells = cells;
 
             return this;
         }
@@ -40,7 +36,7 @@ namespace Smartsheet.Core.Entities
             {
                 this.Id = null;
             }
-
+            
             this.RowNumber = null;
             this.CreatedAt = null;
             this.ModifiedAt = null;
@@ -56,6 +52,7 @@ namespace Smartsheet.Core.Entities
                 if (this.Cells.ElementAt(i).Value != null)
                 {
                     buildCells.Add(this.Cells.ElementAt(i).Build(strict));
+
                 }
             }
 
@@ -91,11 +88,11 @@ namespace Smartsheet.Core.Entities
         public DateTime? ModifiedAt { get; set; }
         public User ModifiedBy { get; set; }
 
-        public ICollection<Cell> Cells { get; set; }
-        public ICollection<Column> Columns { get; set; }
+        public IList<Cell> Cells { get; set; }
+        public IList<Column> Columns { get; set; }
 
-        public ICollection<Discussion> Discussions { get; set; }
-        public ICollection<Attachment> Attatchments { get; set; }
+        public IList<Discussion> Discussions { get; set; }
+        public IList<Attachment> Attatchments { get; set; }
 
         //
         //  Extension Methods
