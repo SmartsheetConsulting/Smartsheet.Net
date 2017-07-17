@@ -17,15 +17,7 @@ namespace Smartsheet.Core.Entities
 
             return this;
         }
-
-        public Cell Build(bool? strict)
-        {
-            this.Column = null;
-            this.Strict = strict;
-
-            return this;
-        }
-
+        
         public long? ColumnId { get; set; }
 
         public dynamic Value { get; set; }

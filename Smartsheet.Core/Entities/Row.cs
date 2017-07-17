@@ -13,9 +13,7 @@ namespace Smartsheet.Core.Entities
             this.Columns = new List<Column>();
         }
 
-        public Row Build(
-            bool toTop,
-            IList<Cell> cells = null)
+        public Row Build(IList<Cell> cells = null)
         {
             //this.Id = null;
             this.RowNumber = null;
