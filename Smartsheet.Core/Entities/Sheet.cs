@@ -168,11 +168,32 @@ namespace Smartsheet.Core.Entities
             return response.Result;
         }
 
-        public async Task<IEnumerable<Row>> UpdateRows(IList<Row> rows)
+        public async Task<IEnumerable<Row>> UpdateRows(IList<Row> rows, bool? toTop = null, bool? toBottom = null, bool? above = null, long? parentId = null, long? siblingId = null)
         {
-            foreach (var row in rows.ToList())
+            if (rows.Count() > 0)
             {
-                row.Build(false, row.Cells);
+                for (var i = 0; i < rows.Count(); i++)
+                {
+                    for (var x = 0; x < rows[i].Cells.Count(); x++)
+                    {
+                        rows[i].Cells.ElementAt(x).Build(false);
+
+                        if (rows[i].Cells.ElementAt(x).Value == null)
+                        {
+                            rows[i].Cells.Remove(rows[i].Cells.ElementAt(x));
+                        }
+
+                        rows[i].Cells.ElementAt(x).Column = null;
+                    }
+
+                    rows[i].Build(false, false, true);
+
+                    rows[i].Above = above;
+                    rows[i].ToTop = toTop;
+                    rows[i].ToBottom = toBottom;
+                    rows[i].ParentId = parentId;
+                    rows[i].SiblingId = siblingId;
+                }
             }
 
             var response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.PUT, string.Format("sheets/{0}/rows", this.Id), rows);

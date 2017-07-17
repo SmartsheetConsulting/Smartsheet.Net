@@ -30,9 +30,13 @@ namespace Smartsheet.Core.Entities
             return this;
         }
 
-        public Row Build(bool includeId = true, bool strict = false)
+        public Row Build(bool toTop, bool strict = false, bool preserveId = false)
         {
-            this.Id = includeId ? this.Id : null;
+            if (!preserveId)
+            {
+                this.Id = null;
+            }
+            
             this.RowNumber = null;
             this.CreatedAt = null;
             this.ModifiedAt = null;
@@ -40,15 +44,15 @@ namespace Smartsheet.Core.Entities
             this.Columns = null;
             this.Discussions = null;
             this.Attatchments = null;
-            this.LockedForUser = null;
 
             var buildCells = new List<Cell>();
 
             for (var i = 0; i < this.Cells.Count; i++)
             {
-                if (this.Cells[i].Value != null)
+                if (this.Cells.ElementAt(i).Value != null)
                 {
-                    buildCells.Add(this.Cells[i].Build(strict));
+                    buildCells.Add(this.Cells.ElementAt(i).Build(strict));
+
                 }
             }
 

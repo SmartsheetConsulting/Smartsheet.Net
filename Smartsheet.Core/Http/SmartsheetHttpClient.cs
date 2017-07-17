@@ -418,14 +418,15 @@ namespace Smartsheet.Core.Http
             return response.Result;
         }
 
-        public async Task<Sheet> GetSheetById(long? sheetId)
+        public async Task<Sheet> GetSheetById(long? sheetId, string include = "")
         {
             if (sheetId == null)
             {
                 throw new Exception("Sheet ID cannot be null");
             }
 
-            var response = await this.ExecuteRequest<Sheet, Sheet>(HttpVerb.GET, string.Format("sheets/{0}", sheetId), null);
+            string includeClause = String.IsNullOrEmpty(include) ? String.Empty : $"?include={include}";
+            var response = await this.ExecuteRequest<Sheet, Sheet>(HttpVerb.GET, string.Format("sheets/{0}{1}", sheetId, includeClause), null);
 
             response._Client = this;
 
@@ -445,6 +446,11 @@ namespace Smartsheet.Core.Http
 
             return response.Sheets;
         }
+        public async Task<IEnumerable<Sheet>> GetOrgSheets() {
+            var response = await this.ExecuteRequest<IndexResultResponse <Sheet>, Sheet>(HttpVerb.GET, "users/sheets", null);
+            
+            return response.Data;
+        }
         #endregion
 
         //
@@ -459,14 +465,14 @@ namespace Smartsheet.Core.Http
 
             if (rows.Count() > 1)
             {
-                foreach(var row in rows)
+                foreach (var row in rows)
                 {
                     row.ToTop = toTop;
                     row.ToBottom = toBottom;
                     row.ParentId = parentId;
                     row.SiblingId = siblingId;
 
-                    foreach(var cell in row.Cells)
+                    foreach (var cell in row.Cells)
                     {
                         cell.Build(false);
                     }

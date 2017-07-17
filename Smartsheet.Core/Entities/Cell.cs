@@ -15,10 +15,13 @@ namespace Smartsheet.Core.Entities
             this.Column = null;
             this.Strict = Strict;
 
-            if (this.Formula != null)
-            {
-                this.Value = null;
-            }
+            return this;
+        }
+
+        public Cell Build(bool? strict)
+        {
+            this.Column = null;
+            this.Strict = strict;
 
             return this;
         }
