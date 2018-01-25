@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26127.3
+VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smartsheet.Core", "Smartsheet.Core\Smartsheet.Core.csproj", "{D17FFC4C-F84E-4D27-A5EE-261089F78C43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smartsheet.Extended", "Smartsheet.Extended\Smartsheet.Extended.csproj", "{B1711339-DA5A-4F08-A69D-5AD0AEA982BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D17FFC4C-F84E-4D27-A5EE-261089F78C43} = {D17FFC4C-F84E-4D27-A5EE-261089F78C43}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,5 +57,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {717500A3-5269-413C-98FF-1162016155E6}
 	EndGlobalSection
 EndGlobal

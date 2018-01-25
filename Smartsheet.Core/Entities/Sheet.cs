@@ -144,23 +144,35 @@ namespace Smartsheet.Core.Entities
         #region SmartsheetHttpClient
         public async Task<IEnumerable<Row>> CreateRows(IList<Row> rows, bool? toTop = null, bool? toBottom = null, bool? enforceStrict = null, long? parentId = null, long? siblingId = null)
         {
+            var systemColumns = this.Columns.Where(c => c.SystemColumnType != null).Select(c => c.Id).ToList();
             for (int i = 0; i < rows.Count; i++)
             {
-                rows[i].Build();
+                var removeCells = new List<Cell>();
+                rows[i].Build(rows[i].Cells);
 
-                foreach (var cell in rows[i].Cells)
+                if (rows[i].Cells != null)
                 {
-                    cell.Build(enforceStrict);
-                }
+                    for (var x = 0; x < rows[i].Cells.Count(); x++)
+                    {
+                        rows[i].Cells[x].Build(enforceStrict);
 
-                rows[i].Id = null;
-                rows[i].CreatedAt = null;
-                rows[i].ModifiedAt = null;
-                rows[i].RowNumber = null;
-                rows[i].ToTop = toTop;
-                rows[i].ToBottom = toBottom;
-                rows[i].ParentId = parentId;
-                rows[i].SiblingId = siblingId;
+                        if ((rows[i].Cells[x].Value == null && String.IsNullOrWhiteSpace(rows[i].Cells[x].Formula)) || systemColumns.Contains(rows[i].Cells[x].ColumnId))
+                        {
+                            removeCells.Add(rows[i].Cells[x]);
+                        }
+                    }
+
+                    rows[i].Cells = rows[i].Cells.Except(removeCells).ToList();
+
+                    rows[i].Id = null;
+                    rows[i].CreatedAt = null;
+                    rows[i].ModifiedAt = null;
+                    rows[i].RowNumber = null;
+                    rows[i].ToTop = toTop;
+                    rows[i].ToBottom = toBottom;
+                    rows[i].ParentId = parentId;
+                    rows[i].SiblingId = siblingId;
+                }
             }
 
             var response = await this._Client.ExecuteRequest<ResultResponse<IEnumerable<Row>>, IEnumerable<Row>>(HttpVerb.POST, string.Format("sheets/{0}/rows", this.Id), rows);
